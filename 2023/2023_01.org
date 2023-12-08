@@ -1,0 +1,98 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  import re
+
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/2 -------------------------------
+  1abc2
+  pqr3stu8vwx
+  a1b2c3d4e5f
+  treb7uchet
+  --------------------------------------------------------------------------------
+  answer_a: 142
+  answer_b: -
+  ------------------------------- Example data 2/2 -------------------------------
+  two1nine
+  eightwothree
+  abcone2threexyz
+  xtwone3four
+  4nineeightseven2
+  zoneight234
+  7pqrstsixteen
+  --------------------------------------------------------------------------------
+  answer_a: -
+  answer_b: 281
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+  digit_map = dict(zip(digits, range(1, 10)))
+
+  def find(lines, regex):
+      values = []
+      for line in lines:
+          matches = re.finditer(regex, line)
+          found_digits = [str(digit_map.get(m.group(1), m.group(1))) for m in matches]
+          if len(found_digits) > 0:
+              values.append(found_digits[0] + found_digits[-1])
+      return sum([int(v) for v in values])
+
+  def p1(lines):
+      return find(lines, r"(\d)")
+
+  def p2(lines):
+      # Find overlapping matches:
+      # https://stackoverflow.com/questions/5616822/how-to-use-regex-to-find-all-overlapping-matches
+      return find(lines, fr"(?=({'|'.join(digits)}|\d))")
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a = p1(example.input_data.split("\n"))
+      ex_b = p2(example.input_data.split("\n"))
+      if ex_a is not None:
+          print("P1:", ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == str(example.answer_a)
+      if ex_b is not None:
+          print("P2:", ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == str(example.answer_b)
+      print("---")
+#+end_src
+
+#+RESULTS:
+: P1: 142
+: P2: 142
+: ---
+: P1: 209
+: P2: 281
+: ---
+* Get result
+#+begin_src jupyter-python
+  answer_a = p1(lines)
+  print(answer_a)
+  answer_b = p2(lines)
+  print(answer_b)
+#+end_src
+
+#+RESULTS:
+: 54990
+: 54473
