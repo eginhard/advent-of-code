@@ -1,0 +1,59 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+* Main methods
+#+begin_src jupyter-python :results none
+  def p1(lines):
+      pass
+
+  def p2(lines):
+      pass
+
+  def solve(lines):
+      return p1(lines), p2(lines)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a = p1(example.input_data.split("\n"))
+      ex_b = p2(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+#+end_src
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
