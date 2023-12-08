@@ -3,7 +3,7 @@ name = "aoc"
 version = "0.1.0"
 description = ""
 authors = ["Enno Hermann <enno.hermann@gmail.com>"]
-readme = "README.md"
+readme = "README.org"
 
 [tool.poetry.dependencies]
 python = "3.12"

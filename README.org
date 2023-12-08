@@ -1,0 +1,6 @@
+* Setup
+This creates the file =2023/2023_01.org= based on [[./aoc/template.org][aoc/template.org]]. The year and
+day parameters default to the current date.
+#+begin_src bash
+  aoc-init -y 2023 -d 01
+#+end_src
