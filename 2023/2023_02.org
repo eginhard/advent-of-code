@@ -1,0 +1,81 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+: Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+: Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+: Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+: Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+: --------------------------------------------------------------------------------
+: answer_a: 8
+: answer_b: 2286
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      games = {}
+      total = {"red": 12, "green": 13, "blue": 14}
+      game_ids = []
+      powers = []
+      for line in lines:
+          possible = True
+          game_id = int(line.split(":")[0].split()[-1])
+          rounds = line.split(":")[1].split(";")
+          mins = {"red": 0, "green": 0, "blue": 0}
+          for round in rounds:
+              colours = round.split(",")
+              count = {}
+              for colour in colours:
+                  for colour_str in ["red", "green", "blue"]:
+                      if colour_str in colour:
+                          count[colour_str] = find_numbers(colour)[0]
+                          mins[colour_str] = max(mins[colour_str], count[colour_str])
+                          if count[colour_str] > total[colour_str]:
+                              possible = False
+          if possible:
+              game_ids.append(game_id)
+          powers.append(mins["red"] * mins["green"] * mins["blue"])
+      return sum(game_ids), sum(powers)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          assert str(ex_b) == example.answer_b
+#+end_src
+
+#+RESULTS:
+: 8
+: 2286
+
+* Get result
+#+begin_src jupyter-python
+  answer_a, answer_b = solve(lines)
+  print(answer_a)
+  print(answer_b)
+#+end_src
+
+#+RESULTS:
+: 2285
+: 77021
