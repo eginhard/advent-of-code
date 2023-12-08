@@ -41,8 +41,7 @@
 * Test cases
 #+begin_src jupyter-python
   for example in examples:
-      ex_a = p1(example.input_data.split("\n"))
-      ex_b = p2(example.input_data.split("\n"))
+      ex_a, ex_b = solve(example.input_data.split("\n"))
       if ex_a is not None:
           print(ex_a)
           assert str(ex_a) == example.answer_a
