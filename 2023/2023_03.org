@@ -1,0 +1,109 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  467..114..
+  ...*......
+  ..35..633.
+  ......#...
+  617*......
+  .....+.58.
+  ..592.....
+  ......755.
+  ...$.*....
+  .664.598..
+  --------------------------------------------------------------------------------
+  answer_a: 4361
+  answer_b: 467835
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      n_rows = len(lines)
+      n_cols = len(lines[0])
+      adjacent = [[False] * n_cols for _ in range(n_rows)]
+      for i, line in enumerate(lines):
+          for j, c in enumerate(line):
+              if not c.isdigit() and c != ".":
+                  for x, y in DIRECTIONS["8"]:
+                      if 0 <= i + x < n_rows and 0 <= j + y < n_cols:
+                          adjacent[i+x][j+y] = True
+      part_numbers = []
+      number = []
+      number_adjacent = False
+      adjacent_numbers = [[[] for _ in range(n_cols)] for _ in range(n_rows)]
+
+      def process_end(number, number_adjacent, i, j):
+          if number != []:
+              value = int("".join(number))
+              if number_adjacent:
+                  part_numbers.append(value)
+              for x in range(i - 1, i + 2):
+                  for y in range(j - len(number) - 1, j + 1):
+                      if 0 <= x < n_rows and 0 <= y < n_cols:
+                          adjacent_numbers[x][y].append(value)
+
+      for i, line in enumerate(lines):
+          for j, c in enumerate(line):
+              if c.isdigit():
+                  number.append(c)
+                  if adjacent[i][j]:
+                      number_adjacent = True
+              else:
+                  process_end(number, number_adjacent, i, j)
+                  number = []
+                  number_adjacent = False
+          process_end(number, number_adjacent, i, j)
+          number = []
+          number_adjacent = False
+
+      ratios = []
+      for i, line in enumerate(lines):
+          for j, c in enumerate(line):
+              if c == "*" and len(adjacent_numbers[i][j]) == 2:
+                  ratios.append(adjacent_numbers[i][j][0] * adjacent_numbers[i][j][1])
+      return sum(part_numbers), sum(ratios)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+#+end_src
+
+#+RESULTS:
+: 4361
+: 467835
+* Get result
+#+begin_src jupyter-python
+  answer_a, answer_b = solve(lines)
+  print(answer_a)
+  print(answer_b)
+#+end_src
+
+#+RESULTS:
+: 549908
+: 81166799
