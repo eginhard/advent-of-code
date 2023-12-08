@@ -12,6 +12,25 @@ jupyter = "^1.0.0"
 numpy = "^1.26.2"
 scipy = "^1.11.4"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.7"
+pre-commit = "^3.5.0"
+mypy = "^1.7.1"
+
+[tool.poetry.scripts]
+aoc-init = "aoc.initialize:initialize"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.mypy.overrides]]
+module = [
+    "aocd.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py312"
+select = ["ALL"]
+ignore = ["D", "T201", "DTZ"]
