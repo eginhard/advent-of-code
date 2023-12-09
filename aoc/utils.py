@@ -16,6 +16,14 @@ DIRECTIONS["8"] = [*DIRECTIONS["4"], *DIRECTIONS["diagonals"]]
 DIRECTIONS["9"] = [*DIRECTIONS["8"], (0, 0)]
 
 
+def diff_consecutive(xs: list[int]) -> list[int]:
+    """Get differences of consecutive integers in the list.
+
+    [0, 3, 6] -> [3, 3]
+    """
+    return [y - x for x, y in itertools.pairwise(xs)]
+
+
 def grouper(
     iterable: Iterable[_T],
     n_chunks: int,
