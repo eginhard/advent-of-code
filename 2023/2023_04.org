@@ -1,0 +1,75 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from collections import defaultdict
+
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+: Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+: Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+: Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+: Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+: Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
+: --------------------------------------------------------------------------------
+: answer_a: 13
+: answer_b: 30
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      total = []
+      copies = defaultdict(int)
+      for line in lines:
+          card, numbers = line.split(": ")
+          cid = int(card.split()[1])
+          copies[cid] += 1
+          winning, own = numbers.split(" | ")
+          winners = len(set(winning.split()) & set(own.split()))
+          if winners > 0:
+              total.append(2 ** (winners - 1))
+              for c in range(cid + 1, cid + 1 + winners):
+                  copies[c] += copies[cid]
+      return sum(total), sum(copies.values())
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+#+end_src
+
+#+RESULTS:
+: 13
+: 30
+
+* Get result
+#+begin_src jupyter-python
+  answer_a, answer_b = solve(lines)
+  print(answer_a)
+  print(answer_b)
+#+end_src
+
+#+RESULTS:
+: 25183
+: 5667240
