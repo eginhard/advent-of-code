@@ -100,34 +100,27 @@
 
 * Main methods
 #+begin_src jupyter-python :results none
-  def follow(grid, start, nxt):
+  def follow(graph, start, nxt):
+      """Follow the pipes until we're back at the start."""
       loop = []
       x, y = start
-      xx, yy = nxt
       while True:
           previous = (x, y)
-          x, y = xx, yy
-          if not (0 <= x < len(grid) and 0 <= y < len(grid[0])):
-              return 0
-          if previous not in grid[x][y] and (x, y) != start:
-              return 0
+          x, y = nxt
           loop.append((x, y))
           if (x, y) == start:
               return loop
-          if previous == grid[x][y][0]:
-              xx, yy = grid[x][y][1]
-          else:
-              xx, yy = grid[x][y][0]
+          nxt = graph[(x, y)][1] if previous == graph[(x, y)][0] else graph[(x, y)][0]
 
   def get_directions(start):
+      """Return a list of 8 surrounding directions, starting with the given one."""
       directions = [(1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
       while directions[0] != start:
           directions.append(directions.pop(0))
       return directions
 
-  def area(lines, grid, loop):
-      left = set()
-      right = set()
+  def area(lines, graph, loop):
+      sides = (set(), set())
       for i, (x, y) in enumerate(loop):
           xx = x - loop[i-1][0]
           yy = y - loop[i-1][1]
@@ -140,85 +133,68 @@
                   dirs = get_directions((-1, -1))
               case (0, 1):
                   dirs = get_directions((-1, 1))
-          is_left = True
+          side = 0
           xx, yy = loop[i-1]
           for dx, dy in dirs:
-              if not (0 <= xx+dx < len(grid) and 0 <= yy+dy < len(grid[0])):
+              if not (0 <= xx+dx < len(lines) and 0 <= yy+dy < len(lines[0])):
                   continue
               if (xx+dx, yy+dy) not in loop:
-                  if is_left:
-                      left.add((xx+dx, yy+dy))
-                  else:
-                      right.add((xx+dx, yy+dy))
-              if (xx+dx, yy+dy) in grid[xx][yy]:
-                  is_left = not is_left
+                  sides[side].add((xx+dx, yy+dy))
+              if (xx+dx, yy+dy) in graph[(xx, yy)]:
+                  side = 1 - side
       rest = []
       for i, line in enumerate(lines):
           for j, _ in enumerate(line):
-              if (i, j) not in loop and (i, j) not in left and (i, j) not in right:
+              # Some cells are not adjacent to the loop
+              if (i, j) not in loop and (i, j) not in sides[0] | sides[1]:
                   rest.append((i, j))
 
+      # Find out where the remaining cells belong
       while rest != []:
           i, j = rest.pop(0)
           neighbors = []
           for dx, dy in DIRECTIONS["8"]:
-              if (i+dx, j+dy) in left:
-                  neighbors.append("L")
-              elif (i+dx, j+dy) in right:
-                  neighbors.append("R")
+              for side in (0, 1):
+                  if (i+dx, j+dy) in sides[side]:
+                      neighbors.append(side)
           if len(neighbors) > 0:
               assert all(neighbors[0] == n for n in neighbors)
-              if neighbors[0] == "L":
-                  left.add((i, j))
-              elif neighbors[0] == "R":
-                  right.add((i, j))
+              sides[neighbors[0]].add((i, j))
           else:
               rest.append((i, j))
-
-      # Print the grid
-      # for i, line in enumerate(lines):
-      #     for j, c in enumerate(line):
-      #         if (i, j) in loop:
-      #             print(".", end="")
-      #         elif (i, j) in left:
-      #             print("L", end="")
-      #         elif (i, j) in right:
-      #             print("R", end="")
-      #     print()
-      return len(left), len(right)
+      return len(sides[0]), len(sides[1])
 
   def solve(lines):
-      grid = [[[]]*len(lines[0]) for _ in range(len(lines))]
+      # Mark which cells are connected by pipes
+      graph = {}
       for i, line in enumerate(lines):
           for j, c in enumerate(line):
               match c:
-                  case ".":
-                      grid[i][j] = [(i, j)]
                   case "|":
-                      grid[i][j] = [(i-1, j), (i+1, j)]
+                      graph[(i, j)] = [(i-1, j), (i+1, j)]
                   case "-":
-                      grid[i][j] = [(i, j-1), (i, j+1)]
+                      graph[(i, j)] = [(i, j-1), (i, j+1)]
                   case "L":
-                      grid[i][j] = [(i-1, j), (i, j+1)]
+                      graph[(i, j)] = [(i-1, j), (i, j+1)]
                   case "J":
-                      grid[i][j] = [(i-1, j), (i, j-1)]
+                      graph[(i, j)] = [(i-1, j), (i, j-1)]
                   case "7":
-                      grid[i][j] = [(i, j-1), (i+1, j)]
+                      graph[(i, j)] = [(i, j-1), (i+1, j)]
                   case "F":
-                      grid[i][j] = [(i, j+1), (i+1, j)]
+                      graph[(i, j)] = [(i, j+1), (i+1, j)]
                   case "S":
-                      grid[i][j] = []
+                      graph[(i, j)] = []
                       start = (i, j)
       x, y = start
       dists = []
       for xx, yy in DIRECTIONS["4"]:
-          if start not in grid[x+xx][y+yy]:
+          if (x+xx, y+yy) not in graph or start not in graph[(x+xx, y+yy)]:
               continue
-          loop = follow(grid, start, (x+xx, y+yy))
+          loop = follow(graph, start, (x+xx, y+yy))
           dists.append(len(loop))
-      grid[x][y] = [loop[0], loop[-2]]  # add connections of "S"
+      graph[start] = [loop[0], loop[-2]]  # add connections of "S"
       assert len(dists) == 2 and dists[0] == dists[1]
-      return dists[0]//2, min(area(lines, grid, loop))
+      return dists[0] // 2, min(area(lines, graph, loop))
 #+end_src
 * Test cases
 #+begin_src jupyter-python
