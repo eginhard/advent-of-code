@@ -1,0 +1,102 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  ...#......
+  .......#..
+  #.........
+  ..........
+  ......#...
+  .#........
+  .........#
+  ..........
+  .......#..
+  #...#.....
+  --------------------------------------------------------------------------------
+  answer_a: 374
+  answer_b: 8410
+  extra: expansion_factor=100
+  --------------------------------------------------------------------------------
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def compute(lines, expansion=1):
+      shortest = []
+      old_galaxies = []
+      galaxies = []
+      rows = [False] * len(lines)
+      columns = [False] * len(lines[0])
+      for i, line in enumerate(lines):
+          for j, c in enumerate(line):
+              if c == "#":
+                  galaxies.append((i, j))
+                  old_galaxies.append((i, j))
+                  rows[i] = True
+                  columns[j] = True
+      for x in range(len(old_galaxies)):
+          for row in range(len(rows)):
+              if rows[row]:
+                  continue
+              if row < old_galaxies[x][0]:
+                  galaxies[x] = (galaxies[x][0] + expansion - 1, galaxies[x][1])
+          for col in range(len(columns)):
+              if columns[col]:
+                  continue
+              if col < old_galaxies[x][1]:
+                  galaxies[x] = (galaxies[x][0], galaxies[x][1] + expansion - 1)
+      for a, b in itertools.combinations(galaxies, 2):
+          shortest.append(abs(a[0] - b[0]) + abs(a[1] - b[1]))
+      return sum(shortest)
+
+  def solve(lines, p2_expansion=1000000):
+      return compute(lines, expansion=2), compute(lines, expansion=p2_expansion)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      factor = int(example.extra.split("=")[1])
+      ex_a, ex_b = solve(example.input_data.split("\n"), p2_expansion=factor)
+      if ex_a is not None:
+          print(ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 374
+: 8410
+:
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 9724940
+: 569052586852
