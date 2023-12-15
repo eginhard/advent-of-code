@@ -1,0 +1,90 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from collections import defaultdict
+
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
+: --------------------------------------------------------------------------------
+: answer_a: 1320
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def get_hash(s: str):
+      val = 0
+      for c in s:
+          val += ord(c)
+          val *= 17
+          val %= 256
+      return val
+
+  def solve(lines):
+      boxes = defaultdict(list)
+      hash_sum = 0
+      for s in lines[0].split(","):
+          hash_sum += get_hash(s)
+          op = "=" if "=" in s else "-"
+          label, focal_length = s.split(op)
+          box = get_hash(label)
+          for i, (lab, _) in enumerate(boxes[box]):
+              if lab == label:
+                  if op == "-":
+                      boxes[box].pop(i)
+                  elif op == "=":
+                      boxes[box][i] = (label, focal_length)
+                  break
+          else:
+              if op == "=":
+                  boxes[box].append((label, focal_length))
+      power = 0
+      for box_id, box in boxes.items():
+          for i, (label, focal_length) in enumerate(box, start=1):
+              power += (1 + box_id) * i * int(focal_length)
+      return hash_sum, power
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 1320
+: 145
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 495972
+: 245223
