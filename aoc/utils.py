@@ -1,7 +1,7 @@
 import itertools
 import re
 from collections.abc import Iterable, Iterator
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -49,6 +49,18 @@ def grouper(
         return zip(*args, strict=False)
     msg = "`incomplete` must be one of: fill, strict, ignore"
     raise ValueError(msg)
+
+
+def find_cycle(xs: list[Any], min_length: int = 2) -> None | tuple[int, int]:
+    """Find a repeating cycle start index and its length in the list.
+
+    [1, 2, 3, 4, 2, 3, 4] -> (1, 3)
+    """
+    for k in range(min_length, len(xs) // 2 + 1):
+        for i in range(len(xs) - k):
+            if xs[i : i + k] == xs[i + k : i + k + k]:
+                return i, k
+    return None
 
 
 def find_numbers(string: str) -> list[int]:

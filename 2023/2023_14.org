@@ -1,0 +1,138 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  O....#....
+  O.OO#....#
+  .....##...
+  OO.#O....O
+  .O.....O#.
+  O.#..O.#.#
+  ..O..#O..O
+  .......O..
+  #....###..
+  #OO..#....
+  --------------------------------------------------------------------------------
+  answer_a: 136
+  answer_b: 64
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def read_input(lines: list[str]) -> tuple[list[list[bool]], list[tuple[int, int]]]:
+      grid = []
+      rocks = []
+      for i, line in enumerate(lines):
+          grid.append([c == "#" for c in line])
+          for j, c in enumerate(line):
+              if c == "O":
+                  rocks.append((i, j))
+      return grid, rocks
+
+  def result(grid, rocks):
+      result = 0
+      for x, y in rocks:
+          result += len(grid) - x
+      return result
+
+  def spin(grid, rocks, part2=False):
+      rocks.sort(key=lambda tup: tup[0])
+      for i, (x, y) in enumerate(rocks):
+          while x > 0:
+              if grid[x-1][y] or (x-1, y) in rocks:
+                  break
+              x -= 1
+          rocks[i] = (x, y)
+      if not part2:
+          return rocks
+      rocks.sort(key=lambda tup: tup[1])
+      for i, (x, y) in enumerate(rocks):
+          while y > 0:
+              if grid[x][y-1] or (x, y-1) in rocks:
+                  break
+              y -= 1
+          rocks[i] = (x, y)
+      rocks.sort(key=lambda tup: tup[0], reverse=True)
+      for i, (x, y) in enumerate(rocks):
+          while x < len(grid) - 1:
+              if grid[x+1][y] or (x+1, y) in rocks:
+                  break
+              x += 1
+          rocks[i] = (x, y)
+      rocks.sort(key=lambda tup: tup[1], reverse=True)
+      for i, (x, y) in enumerate(rocks):
+          while y < len(grid[0]) - 1:
+              if grid[x][y+1] or (x, y+1) in rocks:
+                  break
+              y += 1
+          rocks[i] = (x, y)
+      return rocks
+
+  def p1(lines):
+      grid, rocks = read_input(lines)
+      rocks = spin(grid, rocks)
+      return result(grid, rocks)
+
+  def p2(lines):
+      grid, rocks = read_input(lines)
+      cycles = 1000000000
+      results = []
+      for i in range(1, cycles + 1):
+          rocks = spin(grid, rocks, part2=True)
+          results.append(result(grid, rocks))
+          if (cycle := find_cycle(results)) is not None:
+              start, length = cycle
+              return results[start + (cycles - start - 1) % length]
+
+  def solve(lines):
+      return p1(lines), p2(lines)
+#+end_src
+* Test cases
+#+begin_src jupyter-python :results org
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+#+begin_src org
+#+end_src
+: 136
+: 64
+:
+:END:
+* Get result
+#+begin_src jupyter-python :results org
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 108955
+: 106689
