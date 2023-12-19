@@ -1,0 +1,110 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+
+* Imports
+#+begin_src jupyter-python :results none
+  from aoc.aoc import get_data, print_examples
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  R 6 (#70c710)
+  D 5 (#0dc571)
+  L 2 (#5713f0)
+  D 2 (#d2c081)
+  R 2 (#59c680)
+  D 2 (#411b91)
+  L 5 (#8ceee2)
+  U 2 (#caa173)
+  L 1 (#1b58a2)
+  U 2 (#caa171)
+  R 2 (#7807d2)
+  U 3 (#a77fa3)
+  L 2 (#015232)
+  U 2 (#7a21e3)
+  --------------------------------------------------------------------------------
+  answer_a: 62
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  dirs = {
+      "R": (0, 1),
+      "L": (0, -1),
+      "U": (-1, 0),
+      "D": (1, 0),
+  }
+
+  dmap = {0: "R", 1: "D", 2: "L", 3: "U"}
+
+  def compute(lines, part2=False):
+      x1, y1 = 0, 0
+      area = 0
+      edge = 0
+      # Shoelace formula
+      # https://en.wikipedia.org/wiki/Shoelace_formula
+      for line in lines:
+          d, n, color = line.split()
+          n = int(n)
+          if part2:
+              color = color[2:-1]
+              d = dmap[int(color[-1])]
+              n = int(color[:-1], 16)
+          xx, yy = dirs[d]
+          x2 = x1 + xx * n
+          y2 = y1 + yy * n
+          edge += abs(xx * n + yy * n)
+          area += det2x2(x1, x2, y1, y2)
+          x1 = x2
+          y1 = y2
+      area = abs(area // 2)
+      # Pick's theorem
+      # https://en.wikipedia.org/wiki/Pick%27s_theorem
+      points = area - edge // 2 + 1
+      return points + edge
+
+  def solve(lines):
+      return compute(lines), compute(lines, part2=True)
+#+end_src
+
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 62
+: 952408144115
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 68115
+: 71262565063800

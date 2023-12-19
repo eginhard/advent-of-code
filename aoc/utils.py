@@ -16,6 +16,15 @@ DIRECTIONS["8"] = [*DIRECTIONS["4"], *DIRECTIONS["diagonals"]]
 DIRECTIONS["9"] = [*DIRECTIONS["8"], (0, 0)]
 
 
+def det2x2(a: int, b: int, c: int, d: int) -> int:
+    """Determinant of a 2x2 matrix.
+
+    | a b |
+    | c d |  = ad - bc
+    """
+    return a * d - b * c
+
+
 def diff_consecutive(xs: list[int]) -> list[int]:
     """Get differences of consecutive integers in the list.
 
