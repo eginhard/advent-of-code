@@ -21,3 +21,5 @@ repos:
         args: [--strict]
         additional_dependencies:
           - "numpy"
+ci:
+  autoupdate_schedule: quarterly
