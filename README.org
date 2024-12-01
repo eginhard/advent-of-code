@@ -1,4 +1,10 @@
 * Setup
+1. [[https://docs.astral.sh/uv/guides/integration/jupyter][Create a kernel]] for the project that Jupyter can use:
+   #+begin_src bash
+     uv run ipython kernel install --user --name=aoc
+   #+end_src
+2. [[https://github.com/wimglenn/advent-of-code-wim/issues/1][Get the AOC session ID]] and store it in =~/.config/aocd/token=
+* Usage
 This creates the file =2023/2023_01.org= based on [[./aoc/template.org][aoc/template.org]]. The year and
 day parameters default to the current date.
 #+begin_src bash

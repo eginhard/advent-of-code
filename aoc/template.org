@@ -1,5 +1,6 @@
 # -*- org-confirm-babel-evaluate: nil; -*-
 #+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
 
 * Imports
 #+begin_src jupyter-python :results none
