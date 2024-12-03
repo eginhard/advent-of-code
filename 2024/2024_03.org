@@ -1,0 +1,94 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  import re
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
+: --------------------------------------------------------------------------------
+: answer_a: mul
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def multiply(lines, regex):
+      total = 0
+      do = True
+      for line in lines:
+          matches = re.findall(regex, line.strip())
+          for m in matches:
+              match m:
+                  case "do()":
+                      do = True
+                  case "don't()":
+                      do = False
+                  case _:
+                      l, r = m[4:-1].split(",")
+                      if do:
+                          total += int(l) * int(r)
+      return total
+
+  def solve(lines):
+      re_p1 = r"mul\(\d+,\d+\)"
+      re_p2 = r"mul\(\d+,\d+\)|don't\(\)|do\(\)"
+      return multiply(lines, re_p1), multiply(lines, re_p2)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: (161, 48)
+: 161
+: 161
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 174960292
+: 56275602
