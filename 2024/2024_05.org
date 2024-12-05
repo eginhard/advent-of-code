@@ -1,0 +1,139 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import graphlib
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  47|53
+  97|13
+  97|61
+  97|47
+  75|29
+  61|13
+  75|53
+  29|13
+  97|29
+  53|29
+  61|53
+  97|53
+  61|29
+  47|13
+  75|47
+  97|75
+  47|61
+  75|61
+  47|29
+  75|13
+  53|13
+
+  75,47,61,53,29
+  97,61,53,29,13
+  75,29,13
+  75,97,47,61,53
+  61,13,29
+  97,13,75,29,47
+  --------------------------------------------------------------------------------
+  answer_a: 143
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def get_order(update, rules):
+      predecessors = defaultdict(set)
+      for x, y in rules:
+          if x in update and y in update:
+              predecessors[y].add(x)
+      return list(graphlib.TopologicalSorter(predecessors).static_order())
+
+  def sort(update, rules):
+      order = get_order(update, rules)
+      ordered = []
+      for x in order:
+          if x in update:
+              ordered.append(x)
+      return int(ordered[len(ordered) // 2])
+
+  def solve(lines):
+      rules = []
+      updates = []
+      for line in lines:
+          if "|" in line:
+              rules.append(line.strip().split("|"))
+          elif "," in line:
+              u = line.strip().split(",")
+              middle = u[len(u) // 2]
+              update = {"middle": middle}
+              for i, page in enumerate(u):
+                  update[page] = i
+              updates.append(update)
+      p1, p2 = 0, 0
+      for update in updates:
+          correct = True
+          for x, y in rules:
+              if x in update and y in update and update[x] >= update[y]:
+                  correct = False
+          if correct:
+              p1 += int(update["middle"])
+          else:
+              p2 += sort(update, rules)
+      return p1, p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 143
+: 123
+:
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 4957
+: 6938
