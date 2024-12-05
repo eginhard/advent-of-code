@@ -1,0 +1,131 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 or example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  ..X...
+  .SAMX.
+  .A..A.
+  XMAS.S
+  .X....
+  --------------------------------------------------------------------------------
+  answer_a: XMAS
+  answer_b: -
+  MMMSXXMASM
+  MSAMXMSMSA
+  AMXSXMAAMM
+  MSAMASMSMX
+  XMASAMXAMM
+  XXAMMXXAMA
+  SMSMSASXSS
+  SAXAMASAAA
+  MAMMMXMMMM
+  MXMXAXMASX
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def search(lines, x, y):
+      count = 0
+      for dx, dy in DIRECTIONS["8"]:
+          xx, yy = x, y
+          for letter in "XMAS":
+              if (
+                  xx < 0 or
+                  xx >= len(lines) or
+                  yy < 0 or
+                  yy >= len(lines[0]) or
+                  lines[xx][yy] != letter
+              ):
+                  break
+              xx += dx
+              yy += dy
+          else:
+              count += 1
+      return count
+
+  def search_mas(lines, x, y):
+      if x < 1 or x >= len(lines) - 1 or y < 1 or y >= len(lines[0]) - 1:
+          return 0
+      directions = [*DIRECTIONS["diagonals"], DIRECTIONS["diagonals"][0]]
+      for (dx, dy), (di, dj) in itertools.pairwise(directions):
+          if (
+              lines[x][y] == "A" and
+              lines[x-dx][y-dy] == "M" and
+              lines[x+dx][y+dy] == "S" and
+              lines[x-di][y-dj] == "M" and
+              lines[x+di][y+dj] == "S"
+          ):
+              return 1
+      return 0
+
+  def solve(lines):
+      p1, p2 = 0, 0
+      lines = [line.strip() for line in lines]
+      for x in range(len(lines)):
+          for y in range(len(lines[0])):
+              p1 += search(lines, x, y)
+              p2 += search_mas(lines, x, y)
+      return p1, p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          if example.answer_a is not None:
+              assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          if example.answer_b is not None:
+              assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+begin_src jupyter-python
+  print(solve(test_lines))
+#+end_src
+
+#+RESULTS:
+: (18, 9)
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 2654
+: 1990
