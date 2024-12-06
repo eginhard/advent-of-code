@@ -86,3 +86,10 @@ def lines_to_numpy(lines: list[str]) -> npt.NDArray[np.int_]:
     ["123", "456", "789"] -> [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     """
     return np.array([list(line) for line in lines], dtype=int)
+
+
+def rotate_90deg(dx: int, dy: int, *, clockwise: bool = True) -> tuple[int, int]:
+    """Rotate the given directions by 90 degrees."""
+    if clockwise:
+        return dy, -dx
+    return -dy, dx
