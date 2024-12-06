@@ -1,0 +1,116 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  ....#.....
+  .........#
+  ..........
+  ..#.......
+  .......#..
+  ..........
+  .#..^.....
+  ........#.
+  #.........
+  ......#...
+  --------------------------------------------------------------------------------
+  answer_a: 41
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      blocks = []
+      for i, line in enumerate(lines):
+          blocks.append([])
+          for j, char in enumerate(line.strip()):
+              blocks[-1].append(char == "#")
+              if char == "^":
+                  xx, yy = i, j
+
+      def walk():
+          dx, dy = -1, 0
+          x, y = xx, yy
+          guard = set([(x, y, dx, dy)])
+          while True:
+              if not is_inside_grid(lines, x+dx, y+dy):
+                  return guard
+              if blocks[x+dx][y+dy]:
+                  dx, dy = rotate_90deg(dx, dy)
+              if not is_inside_grid(lines, x+dx, y+dy):
+                  return guard
+              x += dx
+              y += dy
+              if (x, y, dx, dy) in guard:
+                  return False
+              guard.add((x, y, dx, dy))
+
+      p1 = set([(x, y) for x, y, _, _ in walk()])
+      p2 = 0
+      for (i, j) in p1:
+          blocks[i][j] = True
+          if not walk():
+              p2 += 1
+          blocks[i][j] = False
+      return len(p1), p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 41
+: 6
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 4988
+: 1697
