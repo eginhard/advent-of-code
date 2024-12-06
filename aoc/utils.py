@@ -93,3 +93,8 @@ def rotate_90deg(dx: int, dy: int, *, clockwise: bool = True) -> tuple[int, int]
     if clockwise:
         return dy, -dx
     return -dy, dx
+
+
+def is_inside_grid(grid: list[list[Any]], x: int, y: int) -> bool:
+    """Return whether (x, y) is a position inside the grid."""
+    return 0 <= x < len(grid) and 0 <= y < len(grid[0])
