@@ -1,0 +1,106 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  190: 10 19
+  3267: 81 40 27
+  83: 17 5
+  156: 15 6
+  7290: 6 8 6 15
+  161011: 16 10 13
+  192: 17 8 14
+  21037: 9 7 18 13
+  292: 11 6 16 20
+  --------------------------------------------------------------------------------
+  answer_a: 3749
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def find(y, xs, p2=False):
+      if len(xs) == 2:
+          if (
+                  xs[0] + xs[1] == y or
+                  xs[0] * xs[1] == y or
+                  (p2 and f"{xs[0]}{xs[1]}" == str(y))
+          ):
+              return y
+          return 0
+      return max(
+          find(y, [xs[0] + xs[1], *xs[2:]], p2=p2),
+          find(y, [xs[0] * xs[1], *xs[2:]], p2=p2),
+          find(y, [int(f"{xs[0]}{xs[1]}"), *xs[2:]], p2=p2) if p2 else 0,
+      )
+
+  def solve(lines):
+      p1, p2 = 0, 0
+      for line in lines:
+          result, numbers = line.split(": ")
+          numbers = [int(x) for x in numbers.split()]
+          p1 += find(int(result), numbers)
+          p2 += find(int(result), numbers, p2=True)
+      return p1, p2
+
+#+end_src
+
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 3749
+: 11387
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 3245122495150
+: 105517128211543
