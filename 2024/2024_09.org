@@ -1,0 +1,133 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: 2333133121414131402
+: --------------------------------------------------------------------------------
+: answer_a: 1928
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def init(line):
+      files_p1, files_p2 = [], []
+      spaces = []
+      system = []
+      for i, char in enumerate(line):
+          if i % 2 == 0:
+              length = int(char)
+              fid = i // 2
+              files_p2.append((len(system), length, fid))
+              for _ in range(length):
+                  files_p1.append((len(system), fid))
+                  system.append(fid)
+          else:
+              length = int(char)
+              for _ in range(length):
+                  spaces.append(len(system))
+                  system.append(".")
+      return files_p1, files_p2, spaces, system
+
+  def get_result(system):
+      result = 0
+      for i, fid in enumerate(system):
+          if fid != ".":
+              result += i * fid
+      return result
+
+  def p1(lines):
+      files, _, spaces, system = init(lines[0])
+      for space_idx in spaces:
+          block_idx, block_fid = files.pop()
+          if block_idx < space_idx:
+              break
+          system[space_idx] = block_fid
+          system[block_idx] = "."
+
+      return get_result(system)
+
+  def p2(lines):
+      _, files, _, system = init(lines[0])
+
+      while len(files) > 0:
+          start_idx, length, fid = files.pop()
+          for idx, char in enumerate(system):
+              if idx > start_idx:
+                  break
+              if char == ".":
+                  is_free = True
+                  for i in range(length):
+                      if idx + i >= len(system) or system[idx+i] != ".":
+                          is_free = False
+                          break
+                  if not is_free:
+                      continue
+                  for i in range(length):
+                      system[idx+i] = fid
+                      system[start_idx+i] = "."
+                  break
+
+      return get_result(system)
+
+  def solve(lines):
+      return p1(lines), p2(lines)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 1928
+: 2858
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 6398252054886
+: 6415666220005
