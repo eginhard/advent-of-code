@@ -1,0 +1,107 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: 0123
+: 1234
+: 8765
+: 9876
+: --------------------------------------------------------------------------------
+: answer_a: 36
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def search(lines, p2=False):
+      grid = lines_to_numpy(lines)
+      heads, ratings = {}, {}
+      stack = []
+      for x in range(len(grid)):
+          for y in range(len(grid[0])):
+              if grid[x,y] == 0:
+                  heads[(x, y)] = []
+                  ratings[(x, y)] = 0
+                  stack.append([(x, y)])
+
+      trails = 0
+      while len(stack) > 0:
+          path = stack.pop()
+          x, y = path[-1]
+          for dx, dy in DIRECTIONS["4"]:
+              if grid[x,y] == 9 and (p2 or (x, y) not in heads[path[0]]):
+                  trails += 1
+                  heads[path[0]].append((x, y))
+                  ratings[path[0]] += 1
+                  break
+              if (
+                      is_inside_grid(grid, x+dx, y+dy) and
+                      grid[x+dx,y+dy] == grid[x,y] + 1 and
+                      (x+dx, y+dy) not in path
+              ):
+                  stack.append([*path, (x+dx, y+dy)])
+      if p2:
+          return sum(ratings.values())
+      return trails
+
+  def solve(lines):
+      return search(lines), search(lines, p2=True)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 1
+: 16
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 617
+: 1477
