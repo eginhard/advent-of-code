@@ -1,0 +1,83 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 or example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  125 17
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  seen = {}
+
+  def blink_single(stone, times):
+      if (stone, times) in seen:
+          return seen[(stone, times)]
+      new_stones = []
+      if stone == 0:
+          new_stones.append(1)
+      elif len(str(stone)) % 2 == 0:
+          left = str(stone)[:len(str(stone)) // 2]
+          right = str(stone)[len(str(stone)) // 2:]
+          new_stones.extend([int(left), int(right)])
+      else:
+          new_stones.append(stone * 2024)
+      if times == 1:
+          return len(new_stones)
+      total = sum([blink_single(new, times - 1) for new in new_stones])
+      seen[(stone, times)] = total
+      return total
+
+  def blink(lines, times):
+      stones = [int(s) for s in lines[0].split()]
+      return sum([blink_single(stone, times) for stone in stones])
+
+  def solve(lines):
+      return blink(lines, 25), blink(lines, 75)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  solve(test_lines)
+#+end_src
+
+#+RESULTS:
+| 55312 | 65601038650482 |
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 190865
+: 225404711855335
