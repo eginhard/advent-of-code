@@ -1,0 +1,115 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: AAAA
+: BBCD
+: BBCC
+: EEEC
+: --------------------------------------------------------------------------------
+: answer_a: 1930
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  dirs = [(0, 1), (1, 0), (0, -1), (-1, 0), (0, 1)]
+  def solve(lines):
+      def find_neighbours(x, y):
+          region = point_to_region[(x, y)]
+          for dx, dy in DIRECTIONS["4"]:
+              if (
+                      is_inside_grid(lines, x+dx, y+dy) and
+                      (x+dx, y+dy) not in point_to_region and
+                      lines[x][y] == lines[x+dx][y+dy]
+              ):
+                  regions[region].append((x+dx, y+dy))
+                  point_to_region[(x+dx, y+dy)] = region
+                  find_neighbours(x+dx, y+dy)
+      regions = {}
+      point_to_region = {}
+      for x in range(len(lines)):
+          for y in range(len(lines[0])):
+              if (x, y) not in point_to_region:
+                  regions[(x, y)] = [(x, y)]
+                  point_to_region[(x, y)] = (x, y)
+                  find_neighbours(x, y)
+      p1, p2 = 0, 0
+      for members in regions.values():
+          perimeter = 0
+          corners = 0
+          for x, y in members:
+              sides = 4
+              for dx, dy in DIRECTIONS["4"]:
+                  if (x+dx, y+dy) in members:
+                      sides -= 1
+              perimeter += sides
+
+              for (dx1, dy1), (dx2, dy2) in itertools.pairwise(dirs):
+                  if (
+                          ((x+dx1, y+dy1) not in members and (x+dx2, y+dy2) not in members) or
+                          ((x+dx1, y+dy1) in members and (x+dx2, y+dy2) in members and (x+dx1+dx2, y+dy1+dy2) not in members)
+                  ):
+                      corners += 1
+          p1 += perimeter * len(members)
+          p2 += corners * len(members)
+      return p1, p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 140
+: 80
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 1415378
+: 862714
