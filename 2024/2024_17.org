@@ -1,0 +1,151 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  import re
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+: ------------------------------- Example data 1/1 -------------------------------
+: Register A: 729
+: Register B: 0
+: Register C: 0
+:
+: Program: 0,1,5,4,3,0
+: --------------------------------------------------------------------------------
+: answer_a: 4,6,3,5,6,3,5,2,1,0
+: answer_b: -
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def execute(register, program, p2=False):
+      pointer = 0
+      outputs = []
+
+      def combo(operand):
+          if operand <= 3:
+              return operand
+          match operand:
+              case 4:
+                  return register["A"]
+              case 5:
+                  return register["B"]
+              case 6:
+                  return register["C"]
+
+      while pointer < len(program):
+          op = program[pointer]
+          operand = program[pointer+1]
+          match op:
+              case 0:  # adv
+                  register["A"] = register["A"] // 2**combo(operand)
+              case 1:  # bxl
+                  register["B"] = register["B"] ^ operand
+              case 2:  # bst
+                  register["B"] = combo(operand) % 8
+              case 3:  # jnz
+                  pointer = pointer + 2 if register["A"] == 0 else operand
+              case 4:  # bxc
+                  register["B"] = register["B"] ^ register["C"]
+              case 5:  # out
+                  outputs.append(combo(operand) % 8)
+                  if p2 and outputs[-1] != program[len(outputs)-1]:
+                      return [-1]
+              case 6:  # bdv
+                  register["B"] = register["A"] // 2**combo(operand)
+              case 7:  # cdv
+                  register["C"] = register["A"] // 2**combo(operand)
+          if op != 3:
+              pointer += 2
+      return outputs
+
+  def reverse_solve(outputs, A=0):
+      for a in range(A, A+8):
+          if A == 0 and a == 0:
+              continue
+          b = a % 8
+          c = a // 2 ** (b ^ 7)
+          b = b ^ c
+          if b % 8 == outputs[-1]:
+              A = a * 8
+              if len(outputs) == 1:
+                  return a
+              solution = reverse_solve(outputs[:-1], A)
+              if solution != -1:
+                  return solution
+      return -1
+
+  def p1(register, program):
+      return ",".join([str(x) for x in execute(register, program)])
+
+  def p2(register, program):
+      a = reverse_solve(program)
+      register["A"] = a
+      if execute(register, program, p2=True) == program:
+          return a
+
+  def solve(lines):
+      register = {}
+      for line in lines:
+          if "Register" in line:
+              r, x = re.match(r"Register ([ABC]): (\d+)", line).groups()
+              register[r] = int(x)
+          if "Program" in line:
+              program = find_numbers(line)
+
+      return p1(register, program), p2(register, program)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 4,6,3,5,6,3,5,2,1,0
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 2,0,4,2,7,0,1,0,3
+: 265601188299675
