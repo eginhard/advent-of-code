@@ -1,0 +1,100 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  r, wr, b, g, bwu, rb, gb, br
+
+  brwrr
+  bggr
+  gbbr
+  rrbgbr
+  ubwu
+  bwurrg
+  brgr
+  bbrgwb
+  --------------------------------------------------------------------------------
+  answer_a: 6
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      patterns = lines[0].split(", ")
+      targets = [line for line in lines[2:]]
+      cache = defaultdict(lambda: 0)
+
+      def count(target):
+          if target in cache:
+              return cache[target]
+          if target in patterns:
+              cache[target] += 1
+          for pattern in patterns:
+              if target.startswith(pattern) and len(target) != len(pattern):
+                  cache[target] += count(target[len(pattern):])
+          return cache[target]
+
+      p1 = sum([count(target) > 0 for target in targets])
+      p2 = sum([count(target) for target in targets])
+      return p1, p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 6
+: 16
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 276
+: 681226908011510
