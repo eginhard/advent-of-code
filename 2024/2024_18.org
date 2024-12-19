@@ -1,0 +1,127 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import heapq
+  import itertools
+  import math
+  import sys
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  5,4
+  4,2
+  4,5
+  3,0
+  2,1
+  6,3
+  2,4
+  1,5
+  0,6
+  3,3
+  2,6
+  5,1
+  1,2
+  5,5
+  2,5
+  6,5
+  1,4
+  0,4
+  6,4
+  1,1
+  6,1
+  1,0
+  0,5
+  1,6
+  2,0
+  --------------------------------------------------------------------------------
+  answer_a: 1024
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines, n_bytes=1024, size=71):
+      falling = []
+      for line in lines:
+          x, y = line.split(",")
+          falling.append((int(x), int(y)))
+
+      for i in range(n_bytes, len(falling)):
+          steps = defaultdict(lambda: sys.maxsize)
+          steps[(0, 0)] = 0
+          x, y = 0, 0
+          heap = []
+          heapq.heappush(heap, (steps[(x, y)], x, y))
+          while len(heap) > 0:
+              _, x, y = heapq.heappop(heap)
+              if (x, y) == (size - 1, size - 1):
+                  if i == n_bytes:
+                      p1 = steps[(size - 1, size - 1)]
+                  break
+              for dx, dy in DIRECTIONS["4"]:
+                  if x+dx < 0 or x+dx >= size or y+dy < 0 or y+dy >= size:
+                      continue
+                  new_steps = steps[(x, y)] + 1
+                  if (x+dx, y+dy) not in falling[:i] and new_steps < steps[(x+dx, y+dy)]:
+                      steps[(x+dx, y+dy)] = new_steps
+                      heapq.heappush(heap, (new_steps, x+dx, y+dy))
+
+          if steps[(size - 1, size - 1)] >= sys.maxsize:
+              return p1, f"{falling[i-1][0]},{falling[i-1][1]}"
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"), size=7, n_bytes=12)
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 22
+: 6,1
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 226
+: 60,46
