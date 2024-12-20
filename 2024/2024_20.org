@@ -1,0 +1,130 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import heapq
+  import math
+  import sys
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  ###############
+  #...#...#.....#
+  #.#.#.#.#.###.#
+  #S#...#.#.#...#
+  #######.#.#.###
+  #######.#.#...#
+  #######.#.###.#
+  ###..E#...#...#
+  ###.#######.###
+  #...###...#...#
+  #.#####.#.###.#
+  #.#...#.#.#...#
+  #.#.#.#.#.#.###
+  #...#...#...###
+  ###############
+  --------------------------------------------------------------------------------
+  answer_a: ###############
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def cheat(lines, max_length=20, cutoff=100):
+      grid = []
+      for x, line in enumerate(lines):
+          grid.append([])
+          for y, char in enumerate(line):
+              if char == "S":
+                  start = x, y
+              if char == "E":
+                  end = x, y
+              grid[-1].append(char)
+
+      x, y = start
+      path = [(x, y)]
+      while (x, y) != end:
+          for dx, dy in DIRECTIONS["4"]:
+              if grid[x+dx][y+dy] in [".", "E"] and (x+dx, y+dy) not in path:
+                  path.append((x+dx, y+dy))
+                  x += dx
+                  y += dy
+                  break
+      time = len(path) - 1
+
+      count = 0
+      for i in range(len(path) - 1):
+          x1, y1 = path[i]
+          for j in range(i+1, len(path)):
+              x2, y2 = path[j]
+              cheat_length = abs(x1-x2) + abs(y1-y2)
+              if cheat_length <= max_length:
+                  new_path = [*path[:i+1], *path[j:]]
+                  saving = time - len(new_path) - cheat_length + 2
+                  if saving >= cutoff:
+                      count += 1
+      return count
+
+
+  def solve(lines):
+      return cheat(lines, max_length=2, cutoff=100), cheat(lines, max_length=20, cutoff=100)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 85
+: 0
+: 5
+: 3
+:
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 1369
+: 979012
+
+979012
