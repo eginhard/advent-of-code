@@ -15,6 +15,20 @@ DIRECTIONS = {
 DIRECTIONS["8"] = [*DIRECTIONS["4"], *DIRECTIONS["diagonals"]]
 DIRECTIONS["9"] = [*DIRECTIONS["8"], (0, 0)]
 
+DIR2MOVE = {
+    (0, 1): ">",
+    (1, 0): "v",
+    (0, -1): "<",
+    (-1, 0): "^",
+}
+
+MOVE2DIR = {
+    ">": (0, 1),
+    "v": (1, 0),
+    "<": (0, -1),
+    "^": (-1, 0),
+}
+
 
 def det2x2(a: int, b: int, c: int, d: int) -> int:
     """Determinant of a 2x2 matrix.
