@@ -1,0 +1,148 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  import sys
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 or example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  +---+---+---+
+  | 7 | 8 | 9 |
+  +---+---+---+
+  | 4 | 5 | 6 |
+  +---+---+---+
+  | 1 | 2 | 3 |
+  +---+---+---+
+      | 0 | A |
+      +---+---+
+  --------------------------------------------------------------------------------
+  answer_a: 126384
+  answer_b: -
+  029A
+  980A
+  179A
+  456A
+  379A
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  pads = {
+      "numeric": [
+          ["7", "8", "9"],
+          ["4", "5", "6"],
+          ["1", "2", "3"],
+          [None, "0", "A"],
+      ],
+      "directional": [
+          [None, "^", "A"],
+          ["<", "v", ">"],
+      ],
+  }
+
+  positions = {"numeric": {}, "directional": {}}
+  for key, pad in pads.items():
+      for x in range(len(pad)):
+          for y in range(len(pad[0])):
+              positions[key][pad[x][y]] = (x, y)
+
+  def is_valid(moves, x, y, pad):
+      for move in moves:
+          dx, dy = MOVE2DIR[move]
+          x, y = x + dx, y + dy
+          if pads[pad][x][y] is None:
+              return False
+      return True
+
+  cache = {}
+  def solve_pad(code, depth, pad="numeric"):
+      code = "".join(code)
+      if (code, depth) in cache:
+          return cache[(code, depth)]
+      x, y = positions[pad]["A"]
+      total = 0
+      for char in code:
+          cx, cy = positions[pad][char]
+          if (cx, cy) != (x, y):
+              dx, dy = (cx - x, cy - y)
+              ddx = 0 if dx == 0 else dx // abs(dx)
+              ddy = 0 if dy == 0 else dy // abs(dy)
+              moves = abs(dx) * DIR2MOVE.get((ddx, 0), "") + abs(dy) * DIR2MOVE.get((0, ddy), "")
+              if depth > 0:
+                  min_length = sys.maxsize
+                  for moves in set(itertools.permutations(moves)):
+                      if is_valid(moves, x, y, pad):
+                          length = solve_pad([*moves, "A"], depth-1, "directional")
+                          min_length = min(length, min_length)
+                  total += min_length
+              else:
+                  total += len(moves) + 1
+              x, y = (x + dx, y + dy)
+          else:
+              total += 1
+      cache[(code, depth)] = total
+      return total
+
+  def solve(codes):
+      p1 = sum([int(code[:3]) * solve_pad(code, depth=2) for code in codes])
+      p2 = sum([int(code[:3]) * solve_pad(code, depth=25) for code in codes])
+      return p1, p2
+#+end_src
+* Test cases
+#+begin_src jupyter-python :results verbatim
+  solve(test_lines)
+#+end_src
+
+#+RESULTS:
+| 126384 | 154115708116294 |
+
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 202274
+: 245881705840972
