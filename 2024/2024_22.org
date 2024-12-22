@@ -73,12 +73,7 @@
           numbers = new_numbers
       return numbers, prices
 
-  def p1(lines):
-      numbers, _ = numbers_and_prices(lines)
-      return sum(numbers)
-
-
-  def p2(lines):
+  def solve(lines):
       numbers, prices = numbers_and_prices(lines)
       bananas = defaultdict(list)
       for m, m_prices in enumerate(prices):
@@ -87,15 +82,12 @@
           for i, (p1, p2) in enumerate(zip(m_prices, m_prices[1:])):
               changes.append(p2 - p1)
               if len(changes) >= 4:
-                  four_changes = (changes[i-3], changes[i-2], changes[i-1], changes[i])
+                  four_changes = tuple(changes[i-3:])
                   if four_changes not in seen:
                       bananas[four_changes].append(m_prices[i+1])
                       seen.add(four_changes)
       key = max(bananas, key=lambda x: sum(bananas.get(x)))
-      return sum(bananas[key])
-
-  def solve(lines):
-      return p1(lines), p2(lines)
+      return sum(numbers), sum(bananas[key])
 #+end_src
 * Test cases
 #+begin_src jupyter-python
