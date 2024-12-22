@@ -1,0 +1,130 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 or example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  15887950
+  16495136
+  527345
+  704524
+  1553684
+  12683156
+  11100544
+  12249484
+  7753432
+  5908254
+  --------------------------------------------------------------------------------
+  answer_a: 37327623
+  answer_b: -
+  1
+  2
+  3
+  2024
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def mix(x, secret):
+      return x ^ secret
+
+  def prune(x):
+      return x % 16777216
+
+  def numbers_and_prices(lines, iters=2000):
+      numbers = [int(x) for x in lines]
+      prices = [[number % 10] for number in numbers]
+      for _ in range(iters):
+          new_numbers = []
+          for monkey, number in enumerate(numbers):
+              number = prune(mix(number * 64, number))
+              number = prune(mix(number // 32, number))
+              number = prune(mix(number * 2048, number))
+              new_numbers.append(number)
+              prices[monkey].append(number % 10)
+          numbers = new_numbers
+      return numbers, prices
+
+  def p1(lines):
+      numbers, _ = numbers_and_prices(lines)
+      return sum(numbers)
+
+
+  def p2(lines):
+      numbers, prices = numbers_and_prices(lines)
+      bananas = defaultdict(list)
+      for m, m_prices in enumerate(prices):
+          changes = []
+          seen = set()
+          for i, (p1, p2) in enumerate(zip(m_prices, m_prices[1:])):
+              changes.append(p2 - p1)
+              if len(changes) >= 4:
+                  four_changes = (changes[i-3], changes[i-2], changes[i-1], changes[i])
+                  if four_changes not in seen:
+                      bananas[four_changes].append(m_prices[i+1])
+                      seen.add(four_changes)
+      key = max(bananas, key=lambda x: sum(bananas.get(x)))
+      return sum(bananas[key])
+
+  def solve(lines):
+      return p1(lines), p2(lines)
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  solve(test_lines)
+#+end_src
+
+#+RESULTS:
+| 37990510 | 23 |
+
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 17724064040
+: 1998
