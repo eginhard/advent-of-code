@@ -8,6 +8,7 @@
   import math
   from collections import defaultdict, Counter, deque
 
+  import networkx as nx
   import numpy as np
 
   from aoc.aoc import get_data, print_examples, INPUT_DIR
@@ -32,9 +33,11 @@
 * Main methods
 #+begin_src jupyter-python :results none
   def solve(lines):
+      G = nx.Graph()
       network = defaultdict(set)
       for line in lines:
           a, b = line.split("-")
+          G.add_edge(a, b)
           network[a].add(b)
           network[b].add(a)
 
@@ -64,6 +67,7 @@
       for pc, connections in network.items():
           sets.add(find_network((pc,)))
       p2 = max(sets, key=len)
+      assert p2 == tuple(sorted(max(nx.find_cliques(G), key=len)))
       return p1, ",".join(p2)
 #+end_src
 * Test cases
