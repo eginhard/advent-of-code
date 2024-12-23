@@ -1,0 +1,107 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  import re
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  Button A: X+94, Y+34
+  Button B: X+22, Y+67
+  Prize: X=8400, Y=5400
+
+  Button A: X+26, Y+66
+  Button B: X+67, Y+21
+  Prize: X=12748, Y=12176
+
+  Button A: X+17, Y+86
+  Button B: X+84, Y+37
+  Prize: X=7870, Y=6450
+
+  Button A: X+69, Y+23
+  Button B: X+27, Y+71
+  Prize: X=18641, Y=10279
+  --------------------------------------------------------------------------------
+  answer_a: 100
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def claw(lines, add=0):
+      tokens = 0
+      buttons = {}
+      for line in lines:
+          if "Button" in line:
+              button, x, y = re.match(r"Button ([AB]): X\+(\d+), Y\+(\d+)", line).groups()
+              buttons[button] = (int(x), int(y))
+          elif "Prize" in line:
+              x, y = re.match(r"Prize: X=(\d+), Y=(\d+)", line).groups()
+              M = np.array([buttons["A"], buttons["B"]])
+              XY = np.array((int(x) + add, int(y) + add))
+              AB = XY @ np.linalg.inv(M)
+              AB_int = np.round(AB).astype(int)
+              tokens += AB_int[0] * 3 + AB_int[1] if np.all(np.abs(AB - AB_int) < 0.001) else 0
+      return tokens
+
+  def solve(lines):
+      return claw(lines), claw(lines, add=10000000000000)
+#+end_src
+
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 480
+: 875318608908
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 33921
+: 82261957837868
