@@ -1,0 +1,131 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: showeverything
+#+PROPERTY: header-args+ :kernel aoc
+
+* Imports
+#+begin_src jupyter-python :results none
+  import itertools
+  import math
+  from collections import defaultdict, Counter, deque
+
+  import numpy as np
+
+  from aoc.aoc import get_data, print_examples, INPUT_DIR
+  from aoc.utils import *
+#+end_src
+* Load data
+#+begin_src jupyter-python :var fn=(buffer-file-name) :results none
+  lines, year, day, examples = get_data(fn)
+#+end_src
+
+#+begin_src jupyter-python
+  print_examples(examples)
+  example_fn = INPUT_DIR / f"{year}_{day}_test"
+  if len(examples) == 0 and example_fn.is_file():
+      with (example_fn).open() as f:
+          test_lines = f.read().splitlines()
+
+      for line in test_lines:
+          print(line)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+  ------------------------------- Example data 1/1 -------------------------------
+  #####
+  .####
+  .####
+  .####
+  .#.#.
+  .#...
+  .....
+
+  #####
+  ##.##
+  .#.##
+  ...##
+  ...#.
+  ...#.
+  .....
+
+  .....
+  #....
+  #....
+  #...#
+  #.#.#
+  #.###
+  #####
+
+  .....
+  .....
+  #.#..
+  ###..
+  ###.#
+  ###.#
+  #####
+
+  .....
+  .....
+  .....
+  #....
+  #.#..
+  #.#.#
+  #####
+  --------------------------------------------------------------------------------
+  answer_a: 3
+  answer_b: -
+#+end_example
+
+* Main methods
+#+begin_src jupyter-python :results none
+  def solve(lines):
+      locks, keys = [], []
+      for item in "\n".join(lines).split("\n\n"):
+          rows = item.split("\n")
+          if rows[0] == "#####":
+              locks.append(rows)
+          else:
+              keys.append(rows)
+
+      def fits(lock, key):
+          for row in range(len(lock)):
+              for col in range(len(lock[0])):
+                  if lock[row][col] == "#" and key[row][col] == "#":
+                      return False
+          return True
+
+      count = 0
+      for lock in locks:
+          for key in keys:
+              count += fits(lock, key)
+      return count, None
+#+end_src
+* Test cases
+#+begin_src jupyter-python
+  for example in examples:
+      ex_a, ex_b = solve(example.input_data.split("\n"))
+      if ex_a is not None:
+          print(ex_a)
+          # if example.answer_a is not None:
+          #     assert str(ex_a) == example.answer_a
+      if ex_b is not None:
+          print(ex_b)
+          # if example.answer_b is not None:
+          #     assert str(ex_b) == example.answer_b
+      print()
+#+end_src
+
+#+RESULTS:
+: 3
+:
+
+* Get result
+#+begin_src jupyter-python
+  a1, a2 = solve(lines)
+  print(a1)
+  print(a2)
+#+end_src
+
+#+RESULTS:
+: 3360
+: None
