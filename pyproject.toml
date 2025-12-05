@@ -18,6 +18,7 @@ dev = [
     "mypy==1.19.0",
     "ruff==0.14.7",
     "pre-commit==4.5.0",
+    "pytest>=9.0.1",
 ]
 
 [project.scripts]
@@ -36,3 +37,6 @@ ignore_missing_imports = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = ["D", "T201", "DTZ"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101"]

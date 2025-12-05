@@ -112,3 +112,21 @@ def rotate_90deg(dx: int, dy: int, *, clockwise: bool = True) -> tuple[int, int]
 def is_inside_grid(grid: list[list[Any]], x: int, y: int) -> bool:
     """Return whether (x, y) is a position inside the grid."""
     return 0 <= x < len(grid) and 0 <= y < len(grid[0])
+
+
+def merge_ranges(ranges: Iterable[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Merge overlapping integer ranges.
+
+    >>> merge_ranges([(3, 5), (10, 14), (16, 20), (12, 18)])
+
+    [(3, 5), (10, 20)]
+
+    Ranges are considered inclusive.
+    """
+    merged_ranges: list[tuple[int, int]] = []
+    for start, end in sorted(ranges):
+        if merged_ranges and merged_ranges[-1][1] >= start:
+            merged_ranges[-1] = (merged_ranges[-1][0], max(merged_ranges[-1][1], end))
+        else:
+            merged_ranges.append((start, end))
+    return merged_ranges
